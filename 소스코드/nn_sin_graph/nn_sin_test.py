@@ -50,6 +50,7 @@ def main():
   #데이터를 세로로(한개씩)나열한 형태로 reshape
   x_data = np.reshape(x_data, [len(x_data),1])
   y_data = np.reshape(y_data, [len(y_data),1])
+
   
   #총 개수는 정해지지 않았고 1개씩 들어가는 Placeholder 생성
   input_data = tf.placeholder(tf.float32, shape=[None,1])
