@@ -16,11 +16,7 @@ import numpy as np
 import pandas
 import tensorflow as tf
 import math
-import matplotlib.pyplot as plt
 import os
-import cv2
-#import pyscreenshot as ImageGrab #[JYP] NOT WORKING T-T
-from PIL import ImageGrab
 import time
 
 #Load CSV file as matrix
@@ -123,18 +119,14 @@ Y = tf.placeholder(tf.float32, shape=[None, 1])
 W = tf.Variable(tf.random_normal([5,1]), name='weight')
 b = tf.Variable(tf.random_normal([1]), name='bias')
 
-#hypothesis = x_train * W + b
-#hypothesis = tf.matmul(X,W) + b
+#hypothesis 
 hypothesis = tf.sigmoid(tf.matmul(X,W) + b)
 
 
-#cost = tf.reduce_mean(tf.square(hypothesis - Y))
+#cost
 cost = -tf.reduce_mean(Y * tf.log(hypothesis) + (1-Y) * tf.log(1-hypothesis))
 
 #Minimize
-#optimizer = tf.train.GradientDescentOptimizer(learning_rate=0.01)
-#train = optimizer.minimize(cost)
-#train = tf.train.GradientDescentOptimizer(learning_rate=1e-5).minimize(cost)
 train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
 
 # Accuracy computation
@@ -154,7 +146,7 @@ with tf.Session() as sess:
         if step%800 == 0:
             print(step, "\nCost: ", cost_val, "  \nPrediction : ", hy_val)
            
-        #cost 진척이 없는데 굳이 반복 필요없음
+        #cost 진척이 없으면 조기종료(trick)
         if previous_cost == cost_val:
            print("found best hyphothesis when step ", step)
            break
@@ -163,11 +155,11 @@ with tf.Session() as sess:
     
     #가설검증(설명력)
     h,c,a = sess.run([hypothesis, predicted, accuracy], feed_dict={X:X_PassengerData, Y:Y_Survived})
-    print("\nHypothesis: ", h , "\nCorrect(Y): " , c, "\nAccuracy: " , a)
+    #값전체출력 #print("\nHypothesis: ", h , "\nCorrect(Y): " , c, "\nAccuracy: " , a)
+    print("\nAccuracy: " , a)
     print("\nTest CSV runningResult\n")
     h2,c2,a2 = sess.run([hypothesis, predicted, accuracy], feed_dict={X:Test_X_PassengerData, Y:Test_Y_Survived})
-    print("\nHypothesis: ", h2 , "\nCorrect(Y): " , c2, "\nAccuracy: " , a2)
-    #for h in range(len(csvdata2)):
-    #    print(c2[h,0])
+    #값전체출력 #print("\nHypothesis: ", h2 , "\nCorrect(Y): " , c2, "\nAccuracy: " , a2)
+    print("Accuracy: " , a2)
 
 print("end~")
