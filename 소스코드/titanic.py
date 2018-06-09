@@ -15,101 +15,70 @@ Titanic: Machine Learning from Disaster
 import numpy as np
 import pandas
 import tensorflow as tf
-import math
-import os
-import time
 
 #Load CSV file as matrix
-csvdata = pandas.read_csv('train.csv').as_matrix()
-csvdata2 = pandas.read_csv('test.csv').as_matrix()
-csvdata3 = pandas.read_csv('gender_submission.csv').as_matrix()
+train_csv_data = pandas.read_csv('train.csv').as_matrix()
+test_csv_data = pandas.read_csv('test.csv').as_matrix()
+test_csv_sub = pandas.read_csv('gender_submission.csv').as_matrix()
 
 #MALE -> 1
 #FEMALE -> 0
-for i in range(len(csvdata)):
-    #print(csvdata[i , 4])
-    if csvdata[i , 4] == 'male':
-        csvdata[i, 4] = 1
+for i in range(len(train_csv_data)):
+    #print(train_csv_data[i , 4])
+    if train_csv_data[i , 4] == 'male':
+        train_csv_data[i, 4] = 1
     else:
-        csvdata[i, 4] = 0
+        train_csv_data[i, 4] = 0
 
-for i in range(len(csvdata2)):
-    #print(csvdata[i , 4])
-    if csvdata2[i , 3] == 'male':
-        csvdata2[i, 3] = 1
+for i in range(len(test_csv_data)):
+    #print(train_csv_data[i , 4])
+    if test_csv_data[i , 3] == 'male':
+        test_csv_data[i, 3] = 1
     else:
-        csvdata2[i, 3] = 0
-
-
-
-#Age Black -> fill average
-#get index that is not NAN as age
-index_not_nan = np.where(np.logical_not(np.isnan(csvdata[:,5].astype(float))))
-avg_age = np.average(csvdata[index_not_nan, 5].astype(float))
-print("평균나이 : " , avg_age)
-#set age to NAN 
-for i in range(len(csvdata)):
-    if np.isnan(csvdata[i , 5]):
-        csvdata[i, 5] = avg_age
-print("평균나이2 : " , np.average(csvdata[:,5]))
-
-
-for i in range(len(csvdata2)):
-    if np.isnan(csvdata2[i , 4]):
-        csvdata2[i, 4] = avg_age
-
-
+        test_csv_data[i, 3] = 0
 
 #Embarked
 # Empty -> 0
 # S -> 1
 # C -> 2
 # Q -> 3
-for i in range(len(csvdata)):        
-    if csvdata[i , 11] == 'S':
-        csvdata[i, 11] = 1
-    elif csvdata[i , 11] == 'C':
-        csvdata[i, 11] = 2
-    elif csvdata[i , 11] == 'Q':
-        csvdata[i, 11] = 3    
-    if np.isnan(csvdata[i, 11]):
-        csvdata[i, 11] = 0               
+for i in range(len(train_csv_data)):        
+    if train_csv_data[i , 11] == 'S':
+        train_csv_data[i, 11] = 1
+    elif train_csv_data[i , 11] == 'C':
+        train_csv_data[i, 11] = 2
+    elif train_csv_data[i , 11] == 'Q':
+        train_csv_data[i, 11] = 3    
+    if np.isnan(train_csv_data[i, 11]):
+        train_csv_data[i, 11] = 0               
 
-for i in range(len(csvdata2)):        
-    if csvdata2[i , 10] == 'S':
-        csvdata2[i, 10] = 1
-    elif csvdata2[i , 10] == 'C':
-        csvdata2[i, 10] = 2
-    elif csvdata2[i , 10] == 'Q':
-        csvdata2[i, 10] = 3    
-    if np.isnan(csvdata2[i, 10]):
-        csvdata2[i, 10] = 0               
+for i in range(len(test_csv_data)):        
+    if test_csv_data[i , 10] == 'S':
+        test_csv_data[i, 10] = 1
+    elif test_csv_data[i , 10] == 'C':
+        test_csv_data[i, 10] = 2
+    elif test_csv_data[i , 10] == 'Q':
+        test_csv_data[i, 10] = 3    
+    if np.isnan(test_csv_data[i, 10]):
+        test_csv_data[i, 10] = 0               
 
-
-#Fare
-print("avg Fare : ", np.average(csvdata[:, 9].astype(float)))
-
-X_PassengerData = csvdata[:, [2, #Pclass
+X_PassengerData = train_csv_data[:, [2, #Pclass
                            4, #Sex
-                           #5, #Age 
                            6, #SibSp
-                           7#, #Parch
-                          #, 9#, #Fare
-                          , 11 #Embarked
+                           7, # #Parch
+                           11 #Embarked
                            ] ]
-Y_Survived = csvdata[:, 1:2]
+Y_Survived = train_csv_data[:, 1:2]
 
-Test_X_PassengerData = csvdata2[:, [1, #Pclass
+Test_X_PassengerData = test_csv_data[:, [1, #Pclass
                            3, #Sex
-                           #4, #Age 
                            5, #SibSp
-                           6#, #Parch
-                          #, 8#, #Fare
-                          , 10 #Embarked
+                           6,#, #Parch
+                           10 #Embarked
                            ] ]
-Test_Y_Survived = csvdata3[:, 1:2]
+Test_Y_Survived = test_csv_sub[:, 1:2]
 
-print(X_PassengerData)
+#print(X_PassengerData)
 #print(Y_Survived)
 
 #placeholder
@@ -126,7 +95,7 @@ hypothesis = tf.sigmoid(tf.matmul(X,W) + b)
 #cost
 cost = -tf.reduce_mean(Y * tf.log(hypothesis) + (1-Y) * tf.log(1-hypothesis))
 
-#Minimize
+#Optimizer
 train = tf.train.GradientDescentOptimizer(learning_rate=0.1).minimize(cost)
 
 # Accuracy computation
@@ -140,26 +109,23 @@ with tf.Session() as sess:
     sess.run(tf.global_variables_initializer())
     
     for step in range(10000):#10000
-#       cost_val, hy_val, _ = sess.run([cost, hypothesis, train], feed_dict={X: X_PassengerData, Y:Y_Survived})
-        cost_val,  hy_val, _ =sess.run([cost, hypothesis, train], feed_dict={X:X_PassengerData, Y:Y_Survived})
+        cost_val, _ =sess.run([cost, train], feed_dict={X:X_PassengerData, Y:Y_Survived})
     
-        if step%800 == 0:
-            print(step, "\nCost: ", cost_val, "  \nPrediction : ", hy_val)
+        if step%500 == 0:
+            print("Step =", step, ", Cost: ", cost_val)
            
         #cost 진척이 없으면 조기종료(trick)
         if previous_cost == cost_val:
-           print("found best hyphothesis when step ", step)
+           print("found best hyphothesis when step : ", step , "\n")
            break
         else:
            previous_cost = cost_val
     
     #가설검증(설명력)
     h,c,a = sess.run([hypothesis, predicted, accuracy], feed_dict={X:X_PassengerData, Y:Y_Survived})
-    #값전체출력 #print("\nHypothesis: ", h , "\nCorrect(Y): " , c, "\nAccuracy: " , a)
-    print("\nAccuracy: " , a)
-    print("\nTest CSV runningResult\n")
+    print("\n Accuracy: " , a)
+    print("\n Test CSV runningResult")
     h2,c2,a2 = sess.run([hypothesis, predicted, accuracy], feed_dict={X:Test_X_PassengerData, Y:Test_Y_Survived})
-    #값전체출력 #print("\nHypothesis: ", h2 , "\nCorrect(Y): " , c2, "\nAccuracy: " , a2)
-    print("Accuracy: " , a2)
+    print("\n Accuracy: " , a2)
 
 print("end~")
